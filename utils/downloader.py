@@ -36,7 +36,6 @@ def download_video(url: str, format_code: str = "best") -> str:
         raise e
 
 
-# ✅ NEW: List formats
 def get_video_formats(url: str) -> list:
     cookies_path = os.path.abspath("cookies.txt")
     ydl_opts = {
@@ -49,17 +48,36 @@ def get_video_formats(url: str) -> list:
         }
     }
 
+    label_map = {
+        144: "144p",
+        240: "240p",
+        360: "360p",
+        480: "480p",
+        720: "720p",
+        1080: "1080p"
+    }
+
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=False)
         formats = info.get("formats", [])
         result = []
+
         for fmt in formats:
-            if fmt.get('vcodec') != 'none' and fmt.get('ext') == 'mp4':
+            height = fmt.get("height")
+            fps = fmt.get("fps", 0)
+            if fmt.get('vcodec') != 'none' and fmt.get('ext') == 'mp4' and height:
+                label = f"{label_map.get(height, str(height)+'p')}"
+                if fps >= 50:
+                    label += "60"
+
                 result.append({
                     "format_id": fmt.get("format_id"),
-                    "quality": f"{fmt.get('height', 'unknown')}p",
-                    "fps": fmt.get("fps"),
+                    "label": label,
                     "ext": fmt.get("ext"),
+                    "fps": fps,
                     "filesize_mb": round(fmt.get("filesize", 0) / (1024*1024), 2) if fmt.get("filesize") else None
                 })
+
+        # Auto option on top
+        result.insert(0, { "format_id": "best", "label": "Auto" })
         return result
