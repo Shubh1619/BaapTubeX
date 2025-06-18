@@ -20,8 +20,13 @@ def download_video(url: str, format_code: str = "best") -> str:
         'outtmpl': os.path.join(download_dir, '%(title)s.%(ext)s'),
         'cookiefile': cookies_path,
         'quiet': False,
-        'verbose': True
+        'verbose': True,
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+            'Accept-Language': 'en-US,en;q=0.9'
+        }
     }
+
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
